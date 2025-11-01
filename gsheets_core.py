@@ -68,3 +68,4 @@ def append_row(ws_name: str, values: list):
     ws = retry(lambda: sh.worksheet(ws_name))
     retry(lambda: ws.append_row(values))
 
+

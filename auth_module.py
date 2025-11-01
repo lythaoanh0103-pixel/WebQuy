@@ -22,7 +22,7 @@ def hash_pw(pw: str) -> str:
     return bcrypt.hashpw(pw.encode("utf-8"), bcrypt.gensalt(12)).decode("utf-8")
 
 def verify_pw(pw: str, hashed: str) -> bool:
-try:
+    try:
         return bcrypt.checkpw(pw.encode("utf-8"), hashed.encode("utf-8"))
     except Exception:
         return False
@@ -131,4 +131,5 @@ def login_view():
     })
     st.success(f"Xin chào {st.session_state['display_name'] or username}!")
     st.rerun()  # ✅ rerun để login gate ẩn form
+
 

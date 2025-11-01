@@ -486,3 +486,14 @@ if section == "Thông tin cá nhân":
         if prof.get("fund"):
             st.write(f"**Thuộc quỹ:** {prof.get('fund')}")
 
+hide_github = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    [data-testid="stToolbar"] {display: none;}
+    [data-testid="stDecoration"] {display: none;}
+    [data-testid="stStatusWidget"] {display: none;}
+    </style>
+"""
+st.markdown(hide_github, unsafe_allow_html=True)

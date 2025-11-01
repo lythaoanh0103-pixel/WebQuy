@@ -7,8 +7,8 @@ from typing import List, Callable
 
 SHEET_ID = "1icpLUH3UNvMKuoB_hdiCTiwZ-tbY9aPJEOHGSfBWECY"
 
-# =================== GOOGLE SHEETS CLIENT =================== #
-@st.cache_resource
+
+# ===== Kết nối Google Sheets (cache 1 lần cho toàn app) ===== #
 @st.cache_resource
 def gs_client() -> gspread.client.Client:
     scope = [
@@ -26,12 +26,13 @@ def gs_client() -> gspread.client.Client:
         creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
     return gspread.authorize(creds)
 
-# =================== MỞ SHEET =================== #
+
 @st.cache_resource
 def open_sheet():
+    """Mở Google Sheet theo ID."""
     return gs_client().open_by_key(SHEET_ID)
 
-# =================== HÀM PHỤ TRỢ =================== #
+
 def retry(fn: Callable, tries=4, base_delay=0.8):
     """Retry đơn giản cho lỗi quota/429."""
     for i in range(tries):
@@ -45,6 +46,8 @@ def retry(fn: Callable, tries=4, base_delay=0.8):
             raise
     raise RuntimeError("Retry hết lần mà vẫn lỗi quota.")
 
+
+# ===== Đảm bảo header cho sheet ===== #
 def ensure_headers(ws_name: str, headers: List[str]):
     """Chạy đúng 1 lần/phiên khi cần, không gọi ở import time."""
     sh = open_sheet()
@@ -52,20 +55,24 @@ def ensure_headers(ws_name: str, headers: List[str]):
         ws = retry(lambda: sh.worksheet(ws_name))
     except gspread.WorksheetNotFound:
         ws = retry(lambda: sh.add_worksheet(title=ws_name, rows="1000", cols="26"))
+
     current = retry(lambda: ws.row_values(1))
     want = headers
     if current[:len(want)] != want:
         retry(lambda: ws.update(f"A1:{chr(ord('A')+len(want)-1)}1", [want]))
 
+
 @st.cache_data(ttl=500)
 def read_df(ws_name: str) -> pd.DataFrame:
+    """Đọc dữ liệu 1 worksheet -> DataFrame"""
     sh = open_sheet()
     ws = retry(lambda: sh.worksheet(ws_name))
     data = retry(lambda: ws.get_all_records())
     return pd.DataFrame(data)
 
+
 def append_row(ws_name: str, values: list):
+    """Thêm 1 dòng dữ liệu mới vào cuối sheet"""
     sh = open_sheet()
     ws = retry(lambda: sh.worksheet(ws_name))
     retry(lambda: ws.append_row(values))
-

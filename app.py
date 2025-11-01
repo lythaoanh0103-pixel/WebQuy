@@ -10,6 +10,7 @@ import numpy as np
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from auth_module import init_users_sheet_once, signup_view, login_view
+
 # ================== CẤU HÌNH CƠ BẢN ================== #
 st.set_page_config(
     page_title="Quản Lý Quỹ",
@@ -967,3 +968,4 @@ if section == "Thông tin cá nhân":
         st.write(f"**Vai trò:** {prof.get('role') or '—'}")
         if prof.get("fund"):
             st.write(f"**Thuộc quỹ:** {prof.get('fund')}")
+

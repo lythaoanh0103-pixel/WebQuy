@@ -33,7 +33,6 @@ footer:after {content:''; display:none;}
 </style>
 """
 st.markdown(hide_streamlit_ui, unsafe_allow_html=True)
-st.markdown(hide_streamlit_ui, unsafe_allow_html=True)
 SHEET_ID = "1icpLUH3UNvMKuoB_hdiCTiwZ-tbY9aPJEOHGSfBWECY"
 
 # ================== IMPORT AUTH ================== #
@@ -501,6 +500,7 @@ if section == "Thông tin cá nhân":
         st.write(f"**Vai trò:** {prof.get('role') or '—'}")
         if prof.get("fund"):
             st.write(f"**Thuộc quỹ:** {prof.get('fund')}")
+
 
 
 

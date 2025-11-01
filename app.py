@@ -33,6 +33,13 @@ custom_css = """
     </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
+hide_streamlit_style = """
+    <style>
+    [data-testid="stToolbar"] {visibility: hidden !important;}
+    [data-testid="stDecoration"] {visibility: hidden !important;}
+    [data-testid="stStatusWidget"] {display: none !important;}
+    footer {visibility: hidden !important;}
+    header {visibility: hidden !important;}
 SHEET_ID = "1icpLUH3UNvMKuoB_hdiCTiwZ-tbY9aPJEOHGSfBWECY"
 
 # ================== IMPORT AUTH ================== #
@@ -500,5 +507,6 @@ if section == "Thông tin cá nhân":
         st.write(f"**Vai trò:** {prof.get('role') or '—'}")
         if prof.get("fund"):
             st.write(f"**Thuộc quỹ:** {prof.get('fund')}")
+
 
 

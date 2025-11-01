@@ -19,29 +19,20 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- Ẩn logo, GitHub link, thanh menu, footer, link web ---
-custom_css = """
+# --- Ẩn toàn bộ logo, GitHub link, toolbar, footer, link web ---
+hide_streamlit_ui = """
     <style>
-    /* Ẩn menu góc phải, logo Streamlit, con mèo GitHub, và link dưới */
+    /* Ẩn menu góc phải (3 chấm), logo Streamlit, footer, link GitHub, link web */
     #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
     footer {visibility: hidden !important;}
     footer:after {content:''; display:none;}
-    header {visibility: hidden;}
-    [data-testid="stToolbar"] {display: none;}
-    [data-testid="stDecoration"] {display: none;}
-    [data-testid="stStatusWidget"] {display: none;}
+    [data-testid="stToolbar"] {display: none !important;}
+    [data-testid="stDecoration"] {display: none !important;}
+    [data-testid="stStatusWidget"] {display: none !important;}
     </style>
 """
-st.markdown(custom_css, unsafe_allow_html=True)
-hide_streamlit_style = """
-    <style>
-    [data-testid="stToolbar"] {visibility: hidden !important;}
-    [data-testid="stDecoration"] {visibility: hidden !important;}
-    [data-testid="stStatusWidget"] {display: none !important;}
-    footer {visibility: hidden !important;}
-    header {visibility: hidden !important;}
-    """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+st.markdown(hide_streamlit_ui, unsafe_allow_html=True)
 SHEET_ID = "1icpLUH3UNvMKuoB_hdiCTiwZ-tbY9aPJEOHGSfBWECY"
 
 # ================== IMPORT AUTH ================== #
@@ -509,6 +500,7 @@ if section == "Thông tin cá nhân":
         st.write(f"**Vai trò:** {prof.get('role') or '—'}")
         if prof.get("fund"):
             st.write(f"**Thuộc quỹ:** {prof.get('fund')}")
+
 
 
 

@@ -1,0 +1,8 @@
+[theme]
+base = "dark"
+primaryColor = "#d5b8d8ff"       # màu nhấn
+# Các dòng dưới là tùy chọn:
+# backgroundColor = "#9e759fff"
+# secondaryBackgroundColor = "#262730"
+# textColor = "#010000ff"
+# font = "Time new romand"

@@ -18,6 +18,21 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# --- Ẩn logo, GitHub link, thanh menu, footer, link web ---
+custom_css = """
+    <style>
+    /* Ẩn menu góc phải, logo Streamlit, con mèo GitHub, và link dưới */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden !important;}
+    footer:after {content:''; display:none;}
+    header {visibility: hidden;}
+    [data-testid="stToolbar"] {display: none;}
+    [data-testid="stDecoration"] {display: none;}
+    [data-testid="stStatusWidget"] {display: none;}
+    </style>
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
 SHEET_ID = "1icpLUH3UNvMKuoB_hdiCTiwZ-tbY9aPJEOHGSfBWECY"
 
 # ================== IMPORT AUTH ================== #
@@ -486,14 +501,4 @@ if section == "Thông tin cá nhân":
         if prof.get("fund"):
             st.write(f"**Thuộc quỹ:** {prof.get('fund')}")
 
-hide_github = """
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    [data-testid="stToolbar"] {display: none;}
-    [data-testid="stDecoration"] {display: none;}
-    [data-testid="stStatusWidget"] {display: none;}
-    </style>
-"""
-st.markdown(hide_github, unsafe_allow_html=True)
+

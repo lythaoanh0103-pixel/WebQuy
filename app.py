@@ -40,6 +40,8 @@ hide_streamlit_style = """
     [data-testid="stStatusWidget"] {display: none !important;}
     footer {visibility: hidden !important;}
     header {visibility: hidden !important;}
+    """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 SHEET_ID = "1icpLUH3UNvMKuoB_hdiCTiwZ-tbY9aPJEOHGSfBWECY"
 
 # ================== IMPORT AUTH ================== #
@@ -507,6 +509,7 @@ if section == "Thông tin cá nhân":
         st.write(f"**Vai trò:** {prof.get('role') or '—'}")
         if prof.get("fund"):
             st.write(f"**Thuộc quỹ:** {prof.get('fund')}")
+
 
 
 

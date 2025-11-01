@@ -1,13 +1,13 @@
-# gsheets_core.py
 import time
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import streamlit as st
 import pandas as pd
 from typing import List, Callable
+
 SHEET_ID = "1icpLUH3UNvMKuoB_hdiCTiwZ-tbY9aPJEOHGSfBWECY"
 
-# Kết nối chỉ tạo 1 lần cho toàn app
+# =================== GOOGLE SHEETS CLIENT =================== #
 @st.cache_resource
 def gs_client() -> gspread.client.Client:
     scope = [
@@ -26,10 +26,12 @@ def gs_client() -> gspread.client.Client:
 
     return gspread.authorize(creds)
 
+# =================== MỞ SHEET =================== #
 @st.cache_resource
 def open_sheet():
     return gs_client().open_by_key(SHEET_ID)
 
+# =================== HÀM PHỤ TRỢ =================== #
 def retry(fn: Callable, tries=4, base_delay=0.8):
     """Retry đơn giản cho lỗi quota/429."""
     for i in range(tries):
@@ -55,7 +57,7 @@ def ensure_headers(ws_name: str, headers: List[str]):
     if current[:len(want)] != want:
         retry(lambda: ws.update(f"A1:{chr(ord('A')+len(want)-1)}1", [want]))
 
-@st.cache_data(ttl=500) 
+@st.cache_data(ttl=500)
 def read_df(ws_name: str) -> pd.DataFrame:
     sh = open_sheet()
     ws = retry(lambda: sh.worksheet(ws_name))

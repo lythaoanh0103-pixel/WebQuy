@@ -21,16 +21,16 @@ st.set_page_config(
 
 # --- Ẩn toàn bộ logo, GitHub link, toolbar, footer, link web ---
 hide_streamlit_ui = """
-    <style>
-    /* Ẩn menu góc phải (3 chấm), logo Streamlit, footer, link GitHub, link web */
-    #MainMenu {visibility: hidden;}
-    header {visibility: hidden;}
-    footer {visibility: hidden !important;}
-    footer:after {content:''; display:none;}
-    [data-testid="stToolbar"] {display: none !important;}
-    [data-testid="stDecoration"] {display: none !important;}
-    [data-testid="stStatusWidget"] {display: none !important;}
-    </style>
+<style>
+/* Ẩn menu góc phải (3 chấm), logo Streamlit, footer, link GitHub, link web */
+#MainMenu {visibility: hidden;}
+header {visibility: hidden;}
+footer {visibility: hidden !important;}
+footer:after {content:''; display:none;}
+[data-testid="stToolbar"] {display: none !important;}
+[data-testid="stDecoration"] {display: none !important;}
+[data-testid="stStatusWidget"] {display: none !important;}
+</style>
 """
 st.markdown(hide_streamlit_ui, unsafe_allow_html=True)
 SHEET_ID = "1icpLUH3UNvMKuoB_hdiCTiwZ-tbY9aPJEOHGSfBWECY"
@@ -500,6 +500,7 @@ if section == "Thông tin cá nhân":
         st.write(f"**Vai trò:** {prof.get('role') or '—'}")
         if prof.get("fund"):
             st.write(f"**Thuộc quỹ:** {prof.get('fund')}")
+
 
 
 

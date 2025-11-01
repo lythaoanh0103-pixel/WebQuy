@@ -9,6 +9,7 @@ SHEET_ID = "1icpLUH3UNvMKuoB_hdiCTiwZ-tbY9aPJEOHGSfBWECY"
 
 # =================== GOOGLE SHEETS CLIENT =================== #
 @st.cache_resource
+@st.cache_resource
 def gs_client() -> gspread.client.Client:
     scope = [
         "https://spreadsheets.google.com/feeds",
@@ -23,7 +24,6 @@ def gs_client() -> gspread.client.Client:
     except Exception:
         # ✅ Khi chạy local (dùng file credentials.json)
         creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-
     return gspread.authorize(creds)
 
 # =================== MỞ SHEET =================== #
@@ -68,3 +68,4 @@ def append_row(ws_name: str, values: list):
     sh = open_sheet()
     ws = retry(lambda: sh.worksheet(ws_name))
     retry(lambda: ws.append_row(values))
+

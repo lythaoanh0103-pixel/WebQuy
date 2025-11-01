@@ -47,9 +47,8 @@ def retry(fn: Callable, tries=4, base_delay=0.8):
     raise RuntimeError("Retry hết lần mà vẫn lỗi quota.")
 
 
-# ===== Đảm bảo header cho sheet ===== #
 def ensure_headers(ws_name: str, headers: List[str]):
-    """Chạy đúng 1 lần/phiên khi cần, không gọi ở import time."""
+    """Đảm bảo hàng đầu tiên của sheet chứa header mong muốn."""
     sh = open_sheet()
     try:
         ws = retry(lambda: sh.worksheet(ws_name))
@@ -59,7 +58,7 @@ def ensure_headers(ws_name: str, headers: List[str]):
     current = retry(lambda: ws.row_values(1))
     want = headers
     if current[:len(want)] != want:
-        retry(lambda: ws.update(f"A1:{chr(ord('A')+len(want)-1)}1", [want]))
+        retry(lambda: ws.update(f"A1:{chr(ord('A') + len(want) - 1)}1", [want]))
 
 
 @st.cache_data(ttl=500)

@@ -21,12 +21,19 @@ hide_streamlit_ui = """
 <style>
 /* Ẩn menu góc phải (3 chấm), logo Streamlit, footer, link GitHub, link web */
 #MainMenu {visibility: hidden;}
-header {visibility: hidden;}
+header {visibility: hidden !important;}
 footer {visibility: hidden !important;}
 footer:after {content:''; display:none;}
 [data-testid="stToolbar"] {display: none !important;}
 [data-testid="stDecoration"] {display: none !important;}
 [data-testid="stStatusWidget"] {display: none !important;}
+/* Ẩn avatar GitHub và dòng “Made with Streamlit” */
+[data-testid="stAppViewBlockContainer"] div:has(a[href*='streamlit.io']) {
+    display: none !important;
+}
+[data-testid="stAppViewBlockContainer"] div:has(img[alt*='GitHub']) {
+    display: none !important;
+}
 </style>
 """
 st.markdown(hide_streamlit_ui, unsafe_allow_html=True)
@@ -498,4 +505,5 @@ if section == "Thông tin cá nhân":
         st.write(f"**Vai trò:** {prof.get('role') or '—'}")
         if prof.get("fund"):
             st.write(f"**Thuộc quỹ:** {prof.get('fund')}")
+
 

@@ -82,7 +82,6 @@ KHACH_HANG_WS    = "Thông tin khách hàng"
 
 
 # ================== HÀM GOOGLE SHEETS ================== #
-SHEET_ID = "1icpLUH3UNvMKuoB_hdiCTiwZ-tbY9aPJEOHGSfBWECY"
 def gs_client():
     scope = [
         "https://spreadsheets.google.com/feeds",
@@ -958,4 +957,5 @@ elif section == "Lịch sử giao dịch":
         # Tổng số tiền giao dịch
         total_amt = df_user["amount_vnd"].astype(float).sum()
         st.metric("💰 Tổng giá trị giao dịch", f"{total_amt:,.0f} VND")
+
 

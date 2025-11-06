@@ -381,25 +381,134 @@ elif section == "Thông tin cá nhân":
 
 # ================== LỊCH SỬ GIAO DỊCH ================== #
 elif section == "Lịch sử giao dịch":
-    st.title("💹 Lịch sử giao dịch CCQ")
+    st.title("💹 Lịch sử giao dịch chứng chỉ quỹ")
+
+
+
+
+
+
+
+
+    if not st.session_state.get("auth"):
+        st.warning("Vui lòng đăng nhập để xem lịch sử giao dịch.")
+        st.stop()
+
+
+
+
+
+
+
+
+    username = st.session_state.get("username", "")
+    display_name = st.session_state.get("display_name", "")
+
+
+
+
+
+
+
+
     try:
         df_txn = read_df("YCGD")
-        if df_txn.empty:
-            st.info("Chưa có giao dịch nào.")
-        else:
-            df_txn.columns = [c.strip().lower() for c in df_txn.columns]
-            username = st.session_state.get("username","")
-            df_user = df_txn[df_txn["investor_name"].astype(str).str.lower()==username.lower()]
-            if df_user.empty:
-                st.info("Bạn chưa có giao dịch nào được ghi nhận.")
-            else:
-                if "timestamp" in df_user.columns:
-                    df_user["timestamp"] = pd.to_datetime(df_user["timestamp"], errors="coerce")
-                df_user = df_user.sort_values("timestamp", ascending=False)
-                rename = {"timestamp":"Thời gian","fund_name":"Tên quỹ","amount_vnd":"Số tiền (VND)","status":"Trạng thái"}
-                df_show = df_user.rename(columns=rename)
-                st.dataframe(df_show[["Thời gian","Tên quỹ","Số tiền (VND)","Trạng thái"]], use_container_width=True)
-                total_amt = pd.to_numeric(df_user["amount_vnd"], errors="coerce").sum()
-                st.metric("💰 Tổng giá trị giao dịch", f"{total_amt:,.0f} VND")
     except Exception as e:
-        st.error(f"Lỗi đọc lịch sử giao dịch: {e}")
+        st.error(f"Không đọc được sheet 'YCGD': {e}")
+        st.stop()
+
+
+
+
+
+
+
+
+    if df_txn.empty:
+        st.info("Chưa có giao dịch nào được ghi nhận.")
+        st.stop()
+
+
+
+
+
+
+
+
+    # Chuẩn hóa cột và lọc theo tên nhà đầu tư
+    df_txn.columns = [c.strip().lower() for c in df_txn.columns]
+    col_investor = "investor_name"
+    if col_investor not in df_txn.columns:
+        st.error("Không tìm thấy cột 'investor_name' trong sheet.")
+        st.stop()
+
+
+
+
+
+
+
+
+    df_user = df_txn[df_txn[col_investor].astype(str).str.lower() == display_name.lower()]
+
+
+
+
+
+
+
+
+    if df_user.empty:
+        st.info("Bạn chưa có giao dịch nào được ghi nhận.")
+    else:
+        # Chuẩn hóa kiểu dữ liệu
+        if "timestamp" in df_user.columns:
+            df_user["timestamp"] = pd.to_datetime(df_user["timestamp"], errors="coerce")
+
+
+
+
+
+
+
+
+        # Sắp xếp theo thời gian gần nhất
+        df_user = df_user.sort_values(by="timestamp", ascending=False)
+
+
+
+
+
+
+
+
+        # Đổi tên cột hiển thị đẹp hơn
+        rename_cols = {
+            "timestamp": "Thời gian",
+            "fund_name": "Tên quỹ",
+            "amount_vnd": "Số tiền (VND)",
+            "status": "Trạng thái"
+        }
+        df_show = df_user.rename(columns=rename_cols)
+
+
+
+
+
+
+
+
+        st.dataframe(df_show[["Thời gian", "Tên quỹ", "Số tiền (VND)", "Trạng thái"]],
+                     use_container_width=True)
+
+
+
+
+
+
+
+
+        # Tổng số tiền giao dịch
+        total_amt = df_user["amount_vnd"].astype(float).sum()
+        st.metric("💰 Tổng giá trị giao dịch", f"{total_amt:,.0f} VND")
+

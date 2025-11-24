@@ -94,29 +94,104 @@ else:
     ])
 
 # ================== ADMIN ================== #
+# ================== PAGE: ADMIN - TRANG CHỦ (TỔNG QUAN QUỸ) ================== #
 if role == "admin" and section == "Trang chủ":
-    st.title("📊 Tổng quan toàn bộ quỹ")
+    st.title("📊 Dashboard Tổng Quan Tất Cả Quỹ")
+
     try:
         df = read_df("Tổng Quan")
-        if df.empty:
-            st.info("Chưa có dữ liệu Tổng Quan.")
-        else:
-            df.columns = [c.strip().lower() for c in df.columns]
-            funds = sorted(df["fund_name"].dropna().unique())
-            pick = st.selectbox("Chọn quỹ", funds)
-            fund_df = df[df["fund_name"] == pick]
-            st.dataframe(fund_df, use_container_width=True)
     except Exception as e:
         st.error(f"Lỗi đọc sheet: {e}")
+        st.stop()
 
-elif role == "admin" and section == "Quản lý khách hàng":
+    if df.empty:
+        st.info("Chưa có dữ liệu Tổng Quan.")
+    else:
+        df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+        funds = sorted(df["fund_name"].dropna().unique())
+        picked_fund = st.selectbox("Chọn quỹ để xem chi tiết", funds)
+        fund_df = df[df["fund_name"] == picked_fund]
+
+        st.dataframe(fund_df, use_container_width=True)
+
+        if "hang_muc" in fund_df.columns:
+            detail_df = fund_df[fund_df["hang_muc"].astype(str).str.lower() != "tổng"]
+
+            if "tỷ_trọng" in detail_df.columns:
+                st.subheader("🥧 Cơ cấu tỷ trọng")
+                pie = (
+                    alt.Chart(detail_df)
+                    .mark_arc()
+                    .encode(
+                        theta="tỷ_trọng:Q",
+                        color="hang_muc:N",
+                        tooltip=["hang_muc", alt.Tooltip("tỷ_trọng:Q", format=".1%")],
+                    )
+                )
+                st.altair_chart(pie, use_container_width=True)
+
+            if "lợi_suất" in detail_df.columns:
+                st.subheader("📈 Biểu đồ lợi suất")
+                line = (
+                    alt.Chart(detail_df)
+                    .mark_line(point=True)
+                    .encode(
+                        x="hang_muc:N",
+                        y=alt.Y("lợi_suất:Q", axis=alt.Axis(format="%")),
+                        tooltip=["hang_muc", alt.Tooltip("lợi_suất:Q", format=".2%")],
+                    )
+                )
+                st.altair_chart(line, use_container_width=True)
+
+            if {"cơ_cấu_vốn_mục_tiêu","cơ_cấu_vốn_thực_tế"}.issubset(detail_df.columns):
+                st.subheader("🧱 Cơ cấu vốn mục tiêu vs thực tế")
+                co = detail_df[["hang_muc","cơ_cấu_vốn_mục_tiêu","cơ_cấu_vốn_thực_tế"]].melt(
+                    id_vars="hang_muc", var_name="loại", value_name="tỷ_lệ"
+                )
+                bar = (
+                    alt.Chart(co)
+                    .mark_bar()
+                    .encode(
+                        x="hang_muc:N", y="tỷ_lệ:Q", color="loại:N",
+                        tooltip=["hang_muc","loại","tỷ_lệ"],
+                    )
+                )
+                st.altair_chart(bar, use_container_width=True)
+
+    # ---- NAV gần đây ---- #
+    st.divider()
+    st.subheader("📌 NAV gần đây")
+    try:
+        df_nav = read_df("Giá trị tài sản ròng")
+        if not df_nav.empty:
+            df_nav["date"] = pd.to_datetime(df_nav["date"], errors="coerce").dt.date
+            pick = st.selectbox("Chọn quỹ để xem NAV", sorted(df_nav["fund_name"].unique()), key="admin_nav_select")
+            nav_sel = df_nav[df_nav["fund_name"] == pick]
+            st.line_chart(nav_sel.set_index("date")["nav_per_unit"])
+            st.dataframe(nav_sel.tail(10), use_container_width=True)
+        else:
+            st.info("Chưa có dữ liệu NAV.")
+    except Exception as e:
+        st.error(f"Lỗi đọc NAV: {e}")
+
+# ================== PAGE: ADMIN - QUẢN LÝ KHÁCH HÀNG ================== #
+if role == "admin" and section == "Quản lý khách hàng":
     st.title("📂 Quản lý khách hàng")
     df_users = read_df("Users")
     if df_users.empty:
-        st.info("Chưa có khách hàng.")
+        st.warning("Chưa có người dùng nào.")
     else:
+        df_users = df_users.fillna("")
         st.dataframe(df_users, use_container_width=True)
-
+        selected = st.selectbox("Chọn khách hàng để xem giao dịch", df_users["username"])
+        if selected:
+            df_txn = read_df("YCGD")
+            df_txn = df_txn[df_txn["investor_name"].astype(str).str.lower() == selected.lower()]
+            if df_txn.empty:
+                st.info("Khách hàng này chưa có giao dịch.")
+            else:
+                st.dataframe(df_txn, use_container_width=True)
+# ================== PAGE: ADMIN - DUYỆT YÊU CẦU CCQ ================== #
 elif role == "admin" and section == "Duyệt yêu cầu CCQ":
     st.title("🧾 Duyệt yêu cầu mua CCQ")
     df = read_df("YCGD")
@@ -152,6 +227,7 @@ elif role == "admin" and section == "Duyệt yêu cầu CCQ":
                         st.success("Xác nhận thanh toán thành công.")
                         st.rerun()
 
+# ================== PAGE: ADMIN - CẬP NHẬT DANH MỤC ================== #
 elif role == "admin" and section == "Cập nhật danh mục":
     st.title("📈 Cập nhật danh mục đầu tư")
     fund = st.text_input("Tên quỹ")
@@ -161,9 +237,12 @@ elif role == "admin" and section == "Cập nhật danh mục":
     price = st.number_input("Giá", min_value=0.0)
     fee = st.number_input("Phí", min_value=0.0)
     if st.button("Ghi giao dịch"):
-        append_row("Danh mục đầu tư", [fund, ticker, side, qty, price, fee, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+        append_row("Danh mục đầu tư", [
+            fund, ticker, side, qty, price, fee,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ])
         st.success("Đã ghi giao dịch.")
-
+# ================== PAGE: ADMIN - QUẢN TRỊ NỘI DUNG ================== #
 elif role == "admin" and section == "Quản trị nội dung":
     st.title("⚙️ Quản trị nội dung")
     tab1, tab2, tab3 = st.tabs(["Giới thiệu", "Liên hệ", "Hướng dẫn thanh toán"])
@@ -238,3 +317,4 @@ elif role == "investor" and section == "Giao dịch":
             st.warning("Hiện chưa có hướng dẫn thanh toán.")
     except Exception as e:
         st.error(f"Lỗi đọc hướng dẫn: {e}")
+

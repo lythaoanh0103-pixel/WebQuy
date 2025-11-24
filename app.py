@@ -272,6 +272,88 @@ elif role == "admin" and section == "Quản trị nội dung":
             st.success("Đã cập nhật hướng dẫn thanh toán.")
 
 # ================== NHÀ ĐẦU TƯ ================== #
+# ================== NHÀ ĐẦU TƯ - TRANG CHỦ ================== #
+elif role == "investor" and section == "Trang chủ":
+    st.title("📊 Dashboard Quản Lý Quỹ")
+
+    try:
+        df = read_df("Tổng Quan")
+        if df.empty:
+            st.info("⚠️ Chưa có dữ liệu trong 'Tổng Quan'.")
+        else:
+            # Chuẩn hóa cột
+            df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+
+            # Tìm tên cột quỹ (có thể là 'fund_name' hoặc 'tên_quỹ')
+            fund_col = None
+            for col in df.columns:
+                if "fund" in col or "quỹ" in col:
+                    fund_col = col
+                    break
+
+            if not fund_col:
+                st.error("❌ Không tìm thấy cột tên quỹ (fund_name / tên_quỹ).")
+            else:
+                funds = sorted(df[fund_col].dropna().unique().tolist())
+                picked_fund = st.selectbox("Chọn quỹ", funds, key="fund_pick_investor")
+
+                fund_df = df[df[fund_col] == picked_fund].copy()
+                st.dataframe(fund_df, use_container_width=True)
+
+                # --- Biểu đồ cơ cấu tỷ trọng ---
+                if "hang_muc" in fund_df.columns and "tỷ_trọng" in fund_df.columns:
+                    st.subheader("🥧 Cơ cấu tỷ trọng")
+                    pie = (
+                        alt.Chart(fund_df)
+                        .mark_arc()
+                        .encode(
+                            theta="tỷ_trọng:Q",
+                            color="hang_muc:N",
+                            tooltip=["hang_muc", alt.Tooltip("tỷ_trọng:Q", format=".1%")],
+                        )
+                    )
+                    st.altair_chart(pie, use_container_width=True)
+
+                # --- Biểu đồ lợi suất ---
+                if "lợi_suất" in fund_df.columns:
+                    st.subheader("📈 Biểu đồ lợi suất")
+                    line = (
+                        alt.Chart(fund_df)
+                        .mark_line(point=True)
+                        .encode(
+                            x="hang_muc:N",
+                            y=alt.Y("lợi_suất:Q", axis=alt.Axis(format="%")),
+                            tooltip=["hang_muc", alt.Tooltip("lợi_suất:Q", format=".2%")],
+                        )
+                    )
+                    st.altair_chart(line, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Lỗi đọc dữ liệu: {e}")
+
+    st.divider()
+    st.subheader("📌 NAV gần đây")
+    try:
+        df_nav = read_df("Giá trị tài sản ròng")
+        if not df_nav.empty:
+            funds_nav = sorted(df_nav["fund_name"].astype(str).unique())
+            pick = st.selectbox("Chọn quỹ để xem NAV", funds_nav, key="nav_fund_select_investor")
+            nav_sel = df_nav[df_nav["fund_name"] == pick].copy()
+            nav_sel["date"] = pd.to_datetime(nav_sel["date"], errors="coerce").dt.date
+            nav_sel = nav_sel.sort_values("date")
+            st.line_chart(nav_sel.set_index("date")["nav_per_unit"])
+            st.dataframe(nav_sel.tail(10), use_container_width=True)
+        else:
+            st.info("Chưa có dữ liệu NAV.")
+    except Exception as e:
+        st.error(f"Lỗi đọc NAV: {e}")
+# ================== NHÀ ĐẦU TƯ - GIỚI THIỆU ================== #
+elif section == "Giới thiệu":
+    st.title("ℹ️ Giới thiệu")
+    df_cfg = read_df("Config")
+    if not df_cfg.empty and "content" in df_cfg.columns:
+        st.write(df_cfg[df_cfg["section"] == "intro"]["content"].iloc[0])
+# ================== NHÀ ĐẦU TƯ - THÔNG BÁO ================== #
 elif role == "investor" and section == "Thông báo":
     st.title("🔔 Thông báo")
     try:
@@ -296,7 +378,17 @@ elif role == "investor" and section == "Thông báo":
                     update_cell("YCGD", i+2, df_notify.columns.get_loc("notified")+1, "TRUE")
     except Exception as e:
         st.error(f"Lỗi tải thông báo: {e}")
-
+# ================== NHÀ ĐẦU TƯ - GIAO DỊCH ================== #
+elif section == "Liên hệ":
+    st.title("📮 Liên hệ")
+    with st.form("contact_form"):
+        email = st.text_input("Email")
+        msg = st.text_area("Nội dung")
+        ok = st.form_submit_button("Gửi")
+    if ok:
+        append_row("Liên hệ", [datetime.now().strftime("%Y-%m-%d %H:%M:%S"), email, msg])
+        st.success("✅ Đã gửi liên hệ thành công.")
+# ================== NHÀ ĐẦU TƯ - GIAO DỊCH ================== #
 elif role == "investor" and section == "Giao dịch":
     st.title("💸 Giao dịch CCQ & Hướng dẫn thanh toán")
     st.subheader("🪙 Gửi yêu cầu mua CCQ")
@@ -317,4 +409,94 @@ elif role == "investor" and section == "Giao dịch":
             st.warning("Hiện chưa có hướng dẫn thanh toán.")
     except Exception as e:
         st.error(f"Lỗi đọc hướng dẫn: {e}")
+# ================== NHÀ ĐẦU TƯ - THÔNG TIN CÁ NHÂN ================== #
+    if section == "Thông tin cá nhân":
+        if not st.session_state.get("auth"):
+            st.warning("Vui lòng đăng nhập để xem thông tin cá nhân.")
+            st.stop()
+        username = st.session_state.get("username", "")
+        prof = get_user_profile(username)
+        st.title("👤 Thông tin cá nhân")
+        # Header card
+        initials = (
+            (prof.get("display_name") or prof.get("username") or "U")
+            .strip()[:1]
+            .upper()
+        )
+        role_badge = (prof.get("role") or "").strip() or "unknown"
+        st.markdown(
+            f"""
+            <div style="
+                display:flex; align-items:center; gap:16px;
+                padding:16px; border:1px solid #EEF2FF; border-radius:16px;
+                background:linear-gradient(180deg,#F8FAFF 0%, #FFFFFF 100%);
+            ">
+              <div style="
+                  width:60px;height:60px;border-radius:50%;
+                  background:#E5E7EB; display:flex;align-items:center;justify-content:center;
+                  font-weight:700;font-size:22px;color:#374151;">
+                {initials}
+              </div>
+              <div style="flex:1">
+                <div style="font-size:20px;font-weight:700;color:#111827;">
+                  {prof.get("display_name") or prof.get("username")}
+                </div>
+                <div style="color:#6B7280;">@{prof.get("username")}</div>
+              </div>
+              <div>
+                <span style="
+                  padding:6px 10px;border-radius:999px;
+                  background:#EEF2FF;color:#1D4ED8;
+                  font-weight:600;font-size:12px;text-transform:uppercase;">
+                  {role_badge}
+                </span>
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
+
+        st.write("")
+
+
+        # Hai cột thông tin
+        col1, col2 = st.columns(2)
+
+
+        with col1:
+            st.subheader("📬 Liên lạc")
+            st.write(f"**Email:** {prof.get('email') or '—'}")
+            st.write(f"**SĐT:** {prof.get('phone') or '—'}")
+            st.write(f"**Địa chỉ:** {prof.get('address') or '—'}")
+            st.subheader("🏦 Thanh toán")
+            st.write(f"**STK:** {prof.get('bank_acct') or '—'}")
+
+
+        with col2:
+            st.subheader("🪪 Định danh")
+            st.write(f"**CCCD/MST:** {prof.get('cccd_mst') or '—'}")
+            st.write(f"**Ngày sinh/Ngày ĐK:** {prof.get('dob') or '—'}")
+            st.subheader("🏷️ Khác")
+            st.write(f"**Vai trò:** {prof.get('role') or '—'}")
+            if prof.get("fund"):
+                st.write(f"**Thuộc quỹ:** {prof.get('fund')}")
+# ================== NHÀ ĐẦU TƯ - LỊCH SỬ GIAO DỊCH ================== #
+elif section == "Lịch sử giao dịch":
+    st.title("💹 Lịch sử giao dịch")
+    df = read_df("YCGD")
+    username = st.session_state["username"]
+    df = df[df["investor_name"].astype(str).str.lower() == username.lower()]
+    if df.empty:
+        st.info("Chưa có giao dịch.")
+    else:
+        for _, r in df.iterrows():
+            with st.expander(f"{r['fund_name']} - {r['status']}"):
+                st.write(f"Số tiền: {r['amount_vnd']}")
+                st.write(f"Thời gian: {r['timestamp']}")
+                if r['status'] == "Chờ thanh toán":
+                    st.info("💰 Vui lòng chuyển tiền theo hướng dẫn trên web quỹ.")
+                elif r['status'] == "Không thành công":
+                    st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
+                elif r['status'] == "Thành công":
+                    st.success("✅ Giao dịch hoàn tất.")

@@ -362,7 +362,19 @@ elif role == "admin" and section == "Quản trị nội dung":
         new_intro = st.text_area("Nội dung giới thiệu", intro, height=200)
         if st.button("💾 Lưu giới thiệu"):
             sh = gs_client().open_by_key(SHEET_ID).worksheet("Config")
-            sh.update("B2", new_intro)
+            ws = gs_client().open_by_key(SHEET_ID).worksheet("Config")
+            try:
+                # Nếu đã có dòng "intro" thì cập nhật
+                cells = ws.findall("intro")
+                if cells:
+                    row = cells[0].row
+                    ws.update_cell(row, 2, new_intro)
+                else:
+                    # Nếu chưa có, thêm mới
+                    ws.append_row(["intro", new_intro])
+                st.success("✅ Đã lưu hoặc cập nhật nội dung giới thiệu.")
+            except Exception as e:
+                st.error(f"Lỗi khi cập nhật phần giới thiệu: {e}")
             st.success("Đã lưu nội dung.")
     with tab2:
         df_contact = read_df("Liên hệ")
@@ -625,6 +637,7 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 
 
 

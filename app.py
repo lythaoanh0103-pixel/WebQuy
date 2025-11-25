@@ -530,13 +530,35 @@ elif section == "Liên hệ":
 # ================== NHÀ ĐẦU TƯ - GIAO DỊCH ================== #
 elif role == "investor" and section == "Giao dịch":
     st.title("💸 Giao dịch CCQ & Hướng dẫn thanh toán")
-    st.subheader("🪙 Gửi yêu cầu mua CCQ")
+    st.subheader("🪙 Gửi yêu cầu giao dịch CCQ")
+
+    # --- Loại giao dịch (MUA / BÁN) ---
+    trade_type = st.radio("Chọn loại giao dịch", ["MUA", "BÁN"], horizontal=True)
     investor_name = st.text_input("Tên nhà đầu tư")
     fund = st.text_input("Tên quỹ")
     amount = st.number_input("Số tiền (VND)", min_value=0.0)
-    if st.button("Gửi"):
-        append_row("YCGD", [datetime.now().strftime("%Y-%m-%d %H:%M:%S"), investor_name, fund, amount, "PENDING", "", "FALSE"])
-        st.success("✅ Đã gửi yêu cầu, chờ duyệt.")
+    price_ccq = st.number_input("Giá 1 CCQ (VND)", min_value=0.0)
+    fee = st.number_input("Phí giao dịch (VND)", min_value=0.0)
+    
+    if st.button("Gửi yêu cầu"):
+        try:
+            # Tính số CCQ giao dịch
+            if trade_type == "MUA":
+                ccq_qty = (amount - fee) / price_ccq if price_ccq > 0 else 0
+            else:  # BÁN
+                ccq_qty = amount / price_ccq if price_ccq > 0 else 0
+    
+            append_row("YCGD", [
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                investor_name, fund, amount, "PENDING",
+                f"{trade_type} | Số CCQ: {ccq_qty:.4f}", "FALSE"
+            ])
+    
+            st.success(f"✅ Đã gửi yêu cầu {trade_type} {ccq_qty:.4f} CCQ, chờ duyệt.")
+            st.cache_data.clear()
+        except Exception as e:
+            st.error(f"Lỗi khi ghi giao dịch: {e}")
+
     st.divider()
     st.subheader("📘 Lịch sử yêu cầu giao dịch")
     df_user = read_df("YCGD")
@@ -637,6 +659,7 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 
 
 

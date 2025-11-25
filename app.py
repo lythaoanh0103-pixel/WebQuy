@@ -376,7 +376,19 @@ elif role == "admin" and section == "Quản trị nội dung":
         new_payment = st.text_area("Thông tin thanh toán", payment, height=200, placeholder="Ví dụ: STK, ngân hàng, tên chủ tài khoản...")
         if st.button("💾 Lưu hướng dẫn"):
             sh = gs_client().open_by_key(SHEET_ID).worksheet("Config")
-            sh.update("B3", new_payment)
+            ws = gs_client().open_by_key(SHEET_ID).worksheet("Config")
+            try:
+                # Nếu đã có dòng "payment" thì cập nhật
+                cells = ws.findall("payment")
+                if cells:
+                    row = cells[0].row
+                    ws.update_cell(row, 2, new_payment)
+                else:
+                    # Nếu chưa có, thêm mới
+                    ws.append_row(["payment", new_payment])
+                st.success("✅ Đã lưu hoặc cập nhật hướng dẫn thanh toán.")
+            except Exception as e:
+                st.error(f"Lỗi khi cập nhật hướng dẫn: {e}")
             st.success("Đã cập nhật hướng dẫn thanh toán.")
 
 # ================== NHÀ ĐẦU TƯ ================== #
@@ -613,6 +625,7 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 
 
 

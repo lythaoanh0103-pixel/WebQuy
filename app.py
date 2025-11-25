@@ -37,7 +37,7 @@ def gs_client():
         creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
     return gspread.authorize(creds)
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=0)
 def read_df(ws_name):
     sh = gs_client().open_by_key(SHEET_ID)
     ws = sh.worksheet(ws_name)
@@ -570,6 +570,7 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 
 
 

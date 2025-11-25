@@ -105,12 +105,12 @@ if st.sidebar.button("Đăng xuất"):
     for k in ["auth", "username"]:
         st.session_state.pop(k, None)
     st.rerun()
-
+# ================== ADMIN ================== #
 # ================== MENU ================== #
 if role == "admin":
     section = st.sidebar.selectbox("Tuỳ chọn (Admin)", [
         "Trang chủ", "Quản lý khách hàng", "Duyệt yêu cầu CCQ",
-        "Cập nhật danh mục", "Quản trị nội dung"
+        "Lịch sử giao dịch chứng chỉ quỹ", "Cập nhật danh mục", "Quản trị nội dung"
     ])
 else:
     section = st.sidebar.selectbox("Tuỳ chọn", [
@@ -118,7 +118,6 @@ else:
         "Thông tin cá nhân", "Lịch sử giao dịch"
     ])
 
-# ================== ADMIN ================== #
 # ================== PAGE: ADMIN - TRANG CHỦ (TỔNG QUAN QUỸ) ================== #
 if role == "admin" and section == "Trang chủ":
     st.title("📊 Dashboard Tổng Quan Tất Cả Quỹ")
@@ -265,6 +264,51 @@ elif role == "admin" and section == "Duyệt yêu cầu CCQ":
                         ])
                         st.success("✅ Xác nhận thanh toán thành công và đã ghi vào dòng tiền.")
                         st.rerun()
+
+# ================== PAGE: ADMIN - LỊCH SỬ GIAO DỊCH CHỨNG CHỈ QUỸ ================== #
+elif role == "admin" and section == "Lịch sử giao dịch chứng chỉ quỹ":
+    st.title("📜 Lịch sử giao dịch chứng chỉ quỹ")
+
+    try:
+        df = read_df("YCGD")
+    except Exception as e:
+        st.error(f"Lỗi khi đọc dữ liệu: {e}")
+        st.stop()
+
+    if df.empty:
+        st.info("Chưa có giao dịch nào được ghi nhận.")
+    else:
+        # Chuẩn hóa dữ liệu
+        df.columns = [c.strip().lower() for c in df.columns]
+        df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+
+        # Bộ lọc
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            status_filter = st.multiselect("Trạng thái", df["status"].unique().tolist())
+        with col2:
+            investor_filter = st.multiselect("Nhà đầu tư", df["investor_name"].unique().tolist())
+        with col3:
+            sort_order = st.radio("Sắp xếp theo thời gian", ["Mới nhất", "Cũ nhất"], horizontal=True)
+
+        # Áp dụng bộ lọc
+        df_filtered = df.copy()
+        if status_filter:
+            df_filtered = df_filtered[df_filtered["status"].isin(status_filter)]
+        if investor_filter:
+            df_filtered = df_filtered[df_filtered["investor_name"].isin(investor_filter)]
+
+        df_filtered = df_filtered.sort_values(
+            by="timestamp", ascending=(sort_order == "Cũ nhất")
+        )
+
+        st.dataframe(df_filtered, use_container_width=True)
+
+        # Thống kê tổng quan
+        total_value = df_filtered["amount_vnd"].astype(float).sum()
+        col1, col2 = st.columns(2)
+        col1.metric("Tổng số giao dịch", len(df_filtered))
+        col2.metric("Tổng giá trị (VND)", f"{total_value:,.0f}")
 
 # ================== PAGE: ADMIN - CẬP NHẬT DANH MỤC ================== #
 elif role == "admin" and section == "Cập nhật danh mục":
@@ -569,6 +613,7 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 
 
 

@@ -537,7 +537,6 @@ elif role == "investor" and section == "Giao dịch":
    # --- Thông tin giao dịch ---
     fund = st.text_input("Tên quỹ")
     amount = st.number_input("Số tiền (VND)", min_value=0.0)
-    price_ccq = st.number_input("Giá 1 CCQ (VND)", min_value=0.0)
     
     # --- Tự động tính phí giao dịch (0.15% cho lệnh MUA) ---
     if trade_type == "MUA":
@@ -670,6 +669,7 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 
 
 

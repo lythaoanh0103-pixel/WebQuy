@@ -534,11 +534,22 @@ elif role == "investor" and section == "Giao dịch":
 
     # --- Loại giao dịch (MUA / BÁN) ---
     trade_type = st.radio("Chọn loại giao dịch", ["MUA", "BÁN"], horizontal=True)
-    investor_name = st.text_input("Tên nhà đầu tư")
+   # --- Thông tin giao dịch ---
     fund = st.text_input("Tên quỹ")
     amount = st.number_input("Số tiền (VND)", min_value=0.0)
     price_ccq = st.number_input("Giá 1 CCQ (VND)", min_value=0.0)
-    fee = st.number_input("Phí giao dịch (VND)", min_value=0.0)
+    
+    # --- Tự động tính phí giao dịch (0.15% cho lệnh MUA) ---
+    if trade_type == "MUA":
+        fee = round(amount * 0.0015, 2)
+    else:
+        fee = 0.0
+    
+    st.info(f"💸 Phí giao dịch: {fee:,.0f} VND (0.15%)")
+    
+    # --- Lấy tên nhà đầu tư tự động từ tài khoản đăng nhập ---
+    investor_name = st.session_state.get("username", "Ẩn danh")
+
     
     if st.button("Gửi yêu cầu"):
         try:
@@ -659,6 +670,7 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 
 
 

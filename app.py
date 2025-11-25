@@ -218,7 +218,6 @@ if role == "admin" and section == "Quản lý khách hàng":
                 st.dataframe(df_txn, use_container_width=True)
 # ================== PAGE: ADMIN - DUYỆT YÊU CẦU CCQ ================== #
 elif role == "admin" and section == "Duyệt yêu cầu CCQ":
-    elif role == "admin" and section == "Duyệt yêu cầu CCQ":
     st.title("🧾 Duyệt yêu cầu mua CCQ")
     df = read_df("YCGD")
 
@@ -249,6 +248,7 @@ elif role == "admin" and section == "Duyệt yêu cầu CCQ":
                         update_cell("YCGD", r["index"] + 2, 7, "FALSE")
                         st.warning(f"Đã từ chối yêu cầu của {r['investor_name']}")
                         st.rerun()
+
 
 # ================== PAGE: ADMIN - CẬP NHẬT DANH MỤC ================== #
 elif role == "admin" and section == "Cập nhật danh mục":
@@ -378,7 +378,6 @@ elif section == "Giới thiệu":
         st.write(df_cfg[df_cfg["section"] == "intro"]["content"].iloc[0])
 # ================== NHÀ ĐẦU TƯ - THÔNG BÁO ================== #
 elif role == "investor" and section == "Thông báo":
-    elif role == "investor" and section == "Thông báo":
     st.title("🔔 Thông báo")
 
     try:
@@ -404,6 +403,7 @@ elif role == "investor" and section == "Thông báo":
 
     except Exception as e:
         st.error(f"Lỗi tải thông báo: {e}")
+
 
 # ================== NHÀ ĐẦU TƯ - LIÊN HỆ ================== #
 elif section == "Liên hệ":

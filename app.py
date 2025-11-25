@@ -484,11 +484,11 @@ elif role == "investor" and section == "Giao dịch":
         status_filter = col1.selectbox("📊 Lọc theo trạng thái", ["Tất cả", "Pending", "Chờ thanh toán", "Thành công", "Không thành công"])
         sort_order = col2.radio("📅 Sắp xếp", ["Mới nhất", "Cũ nhất"], horizontal=True)
 
-    if status_filter != "Tất cả":
-        df_user = df_user[df_user["status"].str.lower() == status_filter.lower()]
+        if status_filter != "Tất cả":
+            df_user = df_user[df_user["status"].str.lower() == status_filter.lower()]
 
-    df_user = df_user.sort_values("timestamp", ascending=(sort_order == "Cũ nhất"))
-    st.dataframe(df_user, use_container_width=True)
+        df_user = df_user.sort_values("timestamp", ascending=(sort_order == "Cũ nhất"))
+        st.dataframe(df_user, use_container_width=True)
 
     st.divider()
     st.subheader("📄 Hướng dẫn thanh toán")
@@ -570,6 +570,7 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 
 
 

@@ -79,6 +79,7 @@ def get_user_profile(username: str) -> dict:
         "dob": r.get("dob", ""),
         "role": r.get("role", ""),
         "fund": r.get("fund", "")
+    }
 # ================== AUTH ================== #
 from auth_module import init_users_sheet_once, signup_view, login_view
 init_users_sheet_once()
@@ -524,4 +525,5 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 

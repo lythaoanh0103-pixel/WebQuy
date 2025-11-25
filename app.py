@@ -227,7 +227,7 @@ elif role == "admin" and section == "Duyệt yêu cầu CCQ":
         df = df.fillna("")
         df.reset_index(inplace=True)
         # chỉ lọc các yêu cầu đang chờ
-        pending_df = df[df["status"].str.lower().eq("pending")]
+        pending_df = df[df["status"].astype(str).str.strip().str.lower() == "pending"]
 
         for i, r in pending_df.iterrows():
             with st.expander(f"{r['investor_name']} - {r['fund_name']} ({r['status']})"):
@@ -505,6 +505,7 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 
 
 

@@ -54,7 +54,31 @@ def update_cell(ws_name, row, col, value):
     sh = gs_client().open_by_key(SHEET_ID)
     ws = sh.worksheet(ws_name)
     ws.update_cell(row, col, value)
-
+# ================== HÀM LẤY THÔNG TIN NGƯỜI DÙNG ================== #
+def get_user_profile(username: str) -> dict:
+    """Đọc thông tin người dùng từ sheet 'Users'"""
+    try:
+        df = read_df("Users")
+    except Exception:
+        return {}
+    if df.empty:
+        return {}
+    df.columns = [c.strip().lower() for c in df.columns]
+    row = df[df["username"].astype(str).str.lower() == username.lower()]
+    if row.empty:
+        return {}
+    r = row.iloc[0].to_dict()
+    return {
+        "username": r.get("username", ""),
+        "display_name": r.get("display_name", r.get("username", "")),
+        "email": r.get("email", ""),
+        "phone": r.get("sđt", r.get("phone", "")),
+        "address": r.get("address", ""),
+        "bank_acct": r.get("stk", ""),
+        "cccd_mst": r.get("cccd_mst", ""),
+        "dob": r.get("dob", ""),
+        "role": r.get("role", ""),
+        "fund": r.get("fund", "")
 # ================== AUTH ================== #
 from auth_module import init_users_sheet_once, signup_view, login_view
 init_users_sheet_once()
@@ -378,7 +402,7 @@ elif role == "investor" and section == "Thông báo":
                     update_cell("YCGD", i+2, df_notify.columns.get_loc("notified")+1, "TRUE")
     except Exception as e:
         st.error(f"Lỗi tải thông báo: {e}")
-# ================== NHÀ ĐẦU TƯ - GIAO DỊCH ================== #
+# ================== NHÀ ĐẦU TƯ - LIÊN HỆ ================== #
 elif section == "Liên hệ":
     st.title("📮 Liên hệ")
     with st.form("contact_form"):
@@ -500,3 +524,4 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+

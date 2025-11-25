@@ -435,77 +435,55 @@ elif role == "investor" and section == "Giao dịch":
     except Exception as e:
         st.error(f"Lỗi đọc hướng dẫn: {e}")
 # ================== NHÀ ĐẦU TƯ - THÔNG TIN CÁ NHÂN ================== #
-    if section == "Thông tin cá nhân":
-        if not st.session_state.get("auth"):
-            st.warning("Vui lòng đăng nhập để xem thông tin cá nhân.")
-            st.stop()
-        username = st.session_state.get("username", "")
-        prof = get_user_profile(username)
-        st.title("👤 Thông tin cá nhân")
-        # Header card
-        initials = (
-            (prof.get("display_name") or prof.get("username") or "U")
-            .strip()[:1]
-            .upper()
-        )
-        role_badge = (prof.get("role") or "").strip() or "unknown"
-        st.markdown(
-            f"""
-            <div style="
-                display:flex; align-items:center; gap:16px;
-                padding:16px; border:1px solid #EEF2FF; border-radius:16px;
-                background:linear-gradient(180deg,#F8FAFF 0%, #FFFFFF 100%);
-            ">
-              <div style="
-                  width:60px;height:60px;border-radius:50%;
-                  background:#E5E7EB; display:flex;align-items:center;justify-content:center;
-                  font-weight:700;font-size:22px;color:#374151;">
-                {initials}
-              </div>
-              <div style="flex:1">
-                <div style="font-size:20px;font-weight:700;color:#111827;">
-                  {prof.get("display_name") or prof.get("username")}
-                </div>
-                <div style="color:#6B7280;">@{prof.get("username")}</div>
-              </div>
-              <div>
-                <span style="
-                  padding:6px 10px;border-radius:999px;
-                  background:#EEF2FF;color:#1D4ED8;
-                  font-weight:600;font-size:12px;text-transform:uppercase;">
-                  {role_badge}
-                </span>
-              </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+elif role == "investor" and section == "Thông tin cá nhân":
+    if not st.session_state.get("auth"):
+        st.warning("Vui lòng đăng nhập để xem thông tin cá nhân.")
+        st.stop()
 
+    username = st.session_state.get("username", "")
+    prof = get_user_profile(username)
+    st.title("👤 Thông tin cá nhân")
 
-        st.write("")
+    initials = (prof.get("display_name") or prof.get("username") or "U")[:1].upper()
+    role_badge = (prof.get("role") or "").upper()
 
+    st.markdown(f"""
+    <div style="display:flex;align-items:center;gap:16px;
+    padding:16px;border:1px solid #EEF2FF;border-radius:16px;
+    background:linear-gradient(180deg,#F8FAFF 0%, #FFFFFF 100%);">
+      <div style="width:60px;height:60px;border-radius:50%;
+      background:#E5E7EB;display:flex;align-items:center;justify-content:center;
+      font-weight:700;font-size:22px;color:#374151;">{initials}</div>
+      <div style="flex:1">
+        <div style="font-size:20px;font-weight:700;color:#111827;">
+          {prof.get("display_name") or prof.get("username")}
+        </div>
+        <div style="color:#6B7280;">@{prof.get("username")}</div>
+      </div>
+      <div><span style="padding:6px 10px;border-radius:999px;
+      background:#EEF2FF;color:#1D4ED8;font-weight:600;font-size:12px;">
+      {role_badge}</span></div>
+    </div>
+    """, unsafe_allow_html=True)
 
-        # Hai cột thông tin
-        col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("📬 Liên lạc")
+        st.write(f"**Email:** {prof.get('email','—')}")
+        st.write(f"**SĐT:** {prof.get('phone','—')}")
+        st.write(f"**Địa chỉ:** {prof.get('address','—')}")
+        st.subheader("🏦 Thanh toán")
+        st.write(f"**STK:** {prof.get('bank_acct','—')}")
 
+    with col2:
+        st.subheader("🪪 Định danh")
+        st.write(f"**CCCD/MST:** {prof.get('cccd_mst','—')}")
+        st.write(f"**Ngày sinh/Ngày ĐK:** {prof.get('dob','—')}")
+        st.subheader("🏷️ Khác")
+        st.write(f"**Vai trò:** {prof.get('role','—')}")
+        if prof.get("fund"):
+            st.write(f"**Thuộc quỹ:** {prof.get('fund')}")
 
-        with col1:
-            st.subheader("📬 Liên lạc")
-            st.write(f"**Email:** {prof.get('email') or '—'}")
-            st.write(f"**SĐT:** {prof.get('phone') or '—'}")
-            st.write(f"**Địa chỉ:** {prof.get('address') or '—'}")
-            st.subheader("🏦 Thanh toán")
-            st.write(f"**STK:** {prof.get('bank_acct') or '—'}")
-
-
-        with col2:
-            st.subheader("🪪 Định danh")
-            st.write(f"**CCCD/MST:** {prof.get('cccd_mst') or '—'}")
-            st.write(f"**Ngày sinh/Ngày ĐK:** {prof.get('dob') or '—'}")
-            st.subheader("🏷️ Khác")
-            st.write(f"**Vai trò:** {prof.get('role') or '—'}")
-            if prof.get("fund"):
-                st.write(f"**Thuộc quỹ:** {prof.get('fund')}")
 # ================== NHÀ ĐẦU TƯ - LỊCH SỬ GIAO DỊCH ================== #
 elif section == "Lịch sử giao dịch":
     st.title("💹 Lịch sử giao dịch")
@@ -525,5 +503,6 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 
 

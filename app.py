@@ -218,38 +218,36 @@ if role == "admin" and section == "Quản lý khách hàng":
                 st.dataframe(df_txn, use_container_width=True)
 # ================== PAGE: ADMIN - DUYỆT YÊU CẦU CCQ ================== #
 elif role == "admin" and section == "Duyệt yêu cầu CCQ":
+    elif role == "admin" and section == "Duyệt yêu cầu CCQ":
     st.title("🧾 Duyệt yêu cầu mua CCQ")
     df = read_df("YCGD")
+
     if df.empty:
         st.info("Không có yêu cầu.")
     else:
         df = df.fillna("")
-        for i, r in df.iterrows():
-            status = r["status"].strip().lower()
+        df.reset_index(inplace=True)
+        # chỉ lọc các yêu cầu đang chờ
+        pending_df = df[df["status"].str.lower().eq("pending")]
+
+        for i, r in pending_df.iterrows():
             with st.expander(f"{r['investor_name']} - {r['fund_name']} ({r['status']})"):
                 st.write(f"Số tiền: {r['amount_vnd']}")
                 st.write(f"Thời gian: {r['timestamp']}")
-                if status == "pending":
-                    c1, c2 = st.columns(2)
-                    if c1.button("✅ Duyệt", key=f"approve_{i}"):
-                        update_cell("YCGD", i+2, 5, "Chờ thanh toán")
-                        update_cell("YCGD", i+2, 7, "FALSE")
-                        st.success("Đã duyệt yêu cầu.")
-                        st.rerun()
-                    if c2.button("❌ Từ chối", key=f"reject_{i}"):
-                        note = st.text_input("Lý do từ chối", key=f"note_{i}")
-                        if note:
-                            update_cell("YCGD", i+2, 5, "Không thành công")
-                            update_cell("YCGD", i+2, 6, note)
-                            update_cell("YCGD", i+2, 7, "FALSE")
-                            st.warning("Đã từ chối.")
-                            st.rerun()
-                elif status == "chờ thanh toán":
-                    if st.button("💰 Đã thanh toán", key=f"paid_{i}"):
-                        update_cell("YCGD", i+2, 5, "Thành công")
-                        update_cell("YCGD", i+2, 7, "FALSE")
-                        append_row("Dòng tiền quỹ", [datetime.now().strftime("%Y-%m-%d %H:%M:%S"), r["fund_name"], r["amount_vnd"], "NĐT mua CCQ"])
-                        st.success("Xác nhận thanh toán thành công.")
+                c1, c2 = st.columns(2)
+                if c1.button("✅ Duyệt", key=f"approve_{i}"):
+                    # cập nhật trạng thái “Chờ thanh toán” + reset cờ thông báo
+                    update_cell("YCGD", r["index"] + 2, 5, "Chờ thanh toán")
+                    update_cell("YCGD", r["index"] + 2, 7, "FALSE")
+                    st.success(f"Đã duyệt yêu cầu của {r['investor_name']}")
+                    st.rerun()
+                if c2.button("❌ Từ chối", key=f"reject_{i}"):
+                    note = st.text_input("Lý do từ chối", key=f"note_{i}")
+                    if note:
+                        update_cell("YCGD", r["index"] + 2, 5, "Không thành công")
+                        update_cell("YCGD", r["index"] + 2, 6, note)
+                        update_cell("YCGD", r["index"] + 2, 7, "FALSE")
+                        st.warning(f"Đã từ chối yêu cầu của {r['investor_name']}")
                         st.rerun()
 
 # ================== PAGE: ADMIN - CẬP NHẬT DANH MỤC ================== #
@@ -380,29 +378,33 @@ elif section == "Giới thiệu":
         st.write(df_cfg[df_cfg["section"] == "intro"]["content"].iloc[0])
 # ================== NHÀ ĐẦU TƯ - THÔNG BÁO ================== #
 elif role == "investor" and section == "Thông báo":
+    elif role == "investor" and section == "Thông báo":
     st.title("🔔 Thông báo")
+
     try:
         df_notify = read_df("YCGD")
         username = st.session_state["username"]
         df_notify = df_notify[df_notify["investor_name"].astype(str).str.lower() == username.lower()]
+
         if df_notify.empty:
             st.info("Không có thông báo mới.")
         else:
             for i, row in df_notify.iterrows():
                 status = row["status"].strip().lower()
                 note = row.get("note", "")
-                notified_col = "notified" if "notified" in df_notify.columns else None
                 if status == "chờ thanh toán":
-                    st.warning(f"💳 Yêu cầu mua CCQ {row['fund_name']} đã được duyệt. Vui lòng thanh toán.")
+                    st.warning(f"💳 Yêu cầu mua CCQ **{row['fund_name']}** đã được duyệt. Vui lòng thanh toán.")
                     if st.button("📄 Xem hướng dẫn thanh toán", key=f"pay_{i}"):
                         st.session_state["section"] = "Giao dịch"
                         st.rerun()
                 elif status == "thành công":
-                    st.success(f"✅ Giao dịch {row['fund_name']} thành công!")
-                if notified_col:
-                    update_cell("YCGD", i+2, df_notify.columns.get_loc("notified")+1, "TRUE")
+                    st.success(f"✅ Giao dịch {row['fund_name']} thành công.")
+                elif status == "không thành công":
+                    st.error(f"❌ Giao dịch {row['fund_name']} bị từ chối. Lý do: {note}")
+
     except Exception as e:
         st.error(f"Lỗi tải thông báo: {e}")
+
 # ================== NHÀ ĐẦU TƯ - LIÊN HỆ ================== #
 elif section == "Liên hệ":
     st.title("📮 Liên hệ")
@@ -503,6 +505,7 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 
 
 

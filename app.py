@@ -254,17 +254,16 @@ elif role == "admin" and section == "Duyệt yêu cầu CCQ":
                 # --- B2: XÁC NHẬN THANH TOÁN ---
                 elif status == "chờ thanh toán":
                     if st.button("💰 Đã thanh toán", key=f"paid_{i}"):
-                        update_cell("YCGD", r["index"] + 2, 5, "Thành công")
-                        update_cell("YCGD", r["index"] + 2, 6, "Giao dịch hoàn tất")
+                        update_cell("YCGD", i+2, 5, "Thành công")
+                        update_cell("YCGD", i+2, 7, "FALSE")
+                        # ✅ Ghi dòng tiền vào sheet Giao dịch chứng chỉ quỹ (chỉ 4 cột)
                         append_row("Giao dịch chứng chỉ quỹ", [
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             r["investor_name"],
                             r["fund_name"],
-                            r["amount_vnd"],
-                            "MUA",
-                            "Thành công"
+                            r["amount_vnd"]
                         ])
-                        st.success(f"Đã xác nhận thanh toán cho {r['investor_name']}")
+                        st.success("✅ Xác nhận thanh toán thành công và đã ghi vào dòng tiền.")
                         st.rerun()
 
 # ================== PAGE: ADMIN - CẬP NHẬT DANH MỤC ================== #
@@ -570,6 +569,7 @@ elif section == "Lịch sử giao dịch":
                     st.warning(f"❌ Lý do: {r.get('note','Không xác định')}")
                 elif r['status'] == "Thành công":
                     st.success("✅ Giao dịch hoàn tất.")
+
 
 
 
